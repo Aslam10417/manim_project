@@ -11,7 +11,6 @@ env/
 
 # Manim and render outputs
 media/
-*.mp4
 *.mov
 *.webm
 *.gif
