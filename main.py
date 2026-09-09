@@ -1599,12 +1599,17 @@ class IndustrialControlScene(Scene2_BuildAgent):
         for start_key, end_key in self.edge_specs:
             start = lookup[start_key]
             end = lookup[end_key]
-            center_line = Line(start.get_center(), end.get_center())
-            direction = center_line.get_unit_vector()
+            delta = end.get_center() - start.get_center()
+            if abs(delta[0]) >= abs(delta[1]):
+                start_point = start[0].get_right() if delta[0] > 0 else start[0].get_left()
+                end_point = end[0].get_left() if delta[0] > 0 else end[0].get_right()
+            else:
+                start_point = start[0].get_top() if delta[1] > 0 else start[0].get_bottom()
+                end_point = end[0].get_bottom() if delta[1] > 0 else end[0].get_top()
             arrows.add(
                 Arrow(
-                    start.get_boundary_point(direction),
-                    end.get_boundary_point(-direction),
+                    start_point,
+                    end_point,
                     buff=0.08,
                     color=GREY_B,
                     stroke_width=3,
@@ -1636,31 +1641,35 @@ class IndustrialControlScene(Scene2_BuildAgent):
         count = Text(f"{self.line_count} LINES", font_size=13, weight=BOLD, color=self.accent_color)
         count.next_to(source_box, DOWN, buff=0.1).align_to(source_box, RIGHT)
 
-        # Dense vector strokes imply a large source file without typesetting invisible glyphs.
-        dense_lines = VGroup()
-        usable_width = source_box.width - 0.55
-        ratios = (0.42, 0.78, 0.58, 0.91, 0.67, 0.84, 0.51)
-        colors = (GREY_D, GREY_C, self.accent_color, GREY_D)
-        for index in range(112):
-            line = Line(
-                ORIGIN,
-                RIGHT * usable_width * ratios[index % len(ratios)],
-                color=colors[index % len(colors)],
-                stroke_width=0.7,
-                stroke_opacity=0.52,
+        preview_sections = []
+        for label, snippet, first_line, _node_name, _color in self.snippets:
+            preview_sections.append(
+                f"# {label} | production lines {first_line}+\n{snippet}"
             )
-            dense_lines.add(line)
-        dense_lines.arrange(DOWN, aligned_edge=LEFT, buff=0.022)
-        dense_lines.move_to(source_box).align_to(source_box, LEFT).shift(RIGHT * 0.3)
+        preview_source = "\n\n".join(preview_sections)
+        first_preview_line = self.snippets[0][2] if self.snippets else 1
+        preview_code = Code(
+            code_string=preview_source,
+            language="python",
+            add_line_numbers=True,
+            line_numbers_from=first_preview_line,
+            background="rectangle",
+            formatter_style="monokai",
+            paragraph_config={"font": "Consolas", "disable_ligatures": True},
+        )
+        preview_code.scale_to_fit_width(source_box.width - 0.28)
+        if preview_code.height > source_box.height - 0.22:
+            preview_code.scale_to_fit_height(source_box.height - 0.22)
+        preview_code.move_to(source_box)
 
-        code_group = VGroup(source_box, dense_lines, title, count)
+        code_group = VGroup(source_box, preview_code, title, count)
         self.play(Write(title), Create(source_box), FadeIn(count), run_time=0.75)
-        self.play(FadeIn(dense_lines), run_time=0.5)
-        self.wait(0.7)
+        self.play(FadeIn(preview_code, shift=UP * 0.12), run_time=1.1)
+        self.wait(1.0)
 
         shrink_outline = source_box.copy()
         target_outline = source_box.copy().scale(0.35).move_to([-5.65, 2.35, 0])
-        self.remove(source_box, dense_lines, title, count)
+        self.remove(source_box, preview_code, title, count)
         self.add(shrink_outline)
         self.play(Transform(shrink_outline, target_outline), run_time=0.75)
         self.remove(shrink_outline)
@@ -1742,7 +1751,7 @@ class Scene4_OngoingLearning(IndustrialControlScene):
         ("agent", "MEMORY AGENT", AGENT_COLOR, 3.95, 0.65),
         ("write", "STORE OUTCOME", TOOL_COLOR, 3.95, -0.8),
         ("memory", "LONG-TERM STORE", REASON_COLOR, 1.15, -0.8),
-        ("end", "RESPONSE", GOOD_COLOR, 2.55, -2.25),
+        ("end", "RESPONSE", GOOD_COLOR, 1.15, -2.25),
     ]
     edge_specs = [
         ("input", "recall"), ("recall", "agent"), ("agent", "write"),
@@ -1763,7 +1772,7 @@ class Scene5_Reliability(IndustrialControlScene):
         ("agent", "AGENT STEP", AGENT_COLOR, 3.95, 0.65),
         ("retry", "RETRY POLICY", BAD_COLOR, 3.95, -0.8),
         ("resume", "RESUME STATE", GOOD_COLOR, 1.15, -0.8),
-        ("end", "COMPLETE", GOOD_COLOR, 2.55, -2.25),
+        ("end", "COMPLETE", GOOD_COLOR, 1.15, -2.25),
     ]
     edge_specs = [
         ("input", "checkpoint"), ("checkpoint", "agent"), ("agent", "retry"),
@@ -1784,7 +1793,7 @@ class Scene6_ObservabilityControl(IndustrialControlScene):
         ("agent", "BOUNDED AGENT", AGENT_COLOR, 3.95, 0.65),
         ("approval", "HUMAN APPROVAL", REASON_COLOR, 3.95, -0.8),
         ("tool", "SENSITIVE TOOL", BAD_COLOR, 1.15, -0.8),
-        ("end", "AUDITED RESULT", GOOD_COLOR, 2.55, -2.25),
+        ("end", "AUDITED RESULT", GOOD_COLOR, 1.15, -2.25),
     ]
     edge_specs = [
         ("input", "trace"), ("trace", "agent"), ("agent", "approval"),
@@ -1805,7 +1814,7 @@ class Scene7_VersionControl(IndustrialControlScene):
         ("agent", "AGENT v3.4.0", AGENT_COLOR, 3.95, 0.65),
         ("tools", "TOOLS v5.2.1", TOOL_COLOR, 3.95, -0.8),
         ("metadata", "TRACE VERSIONS", GOOD_COLOR, 1.15, -0.8),
-        ("end", "DEPLOY / ROLLBACK", GOOD_COLOR, 2.55, -2.25),
+        ("end", "DEPLOY / ROLLBACK", GOOD_COLOR, 1.15, -2.25),
     ]
     edge_specs = [
         ("release", "prompt"), ("prompt", "agent"), ("agent", "tools"),
