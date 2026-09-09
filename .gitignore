@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.python-version
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Manim and render outputs
+media/
+*.mp4
+*.mov
+*.webm
+*.gif
+
+# Temporary and cache files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+tmp/
+*.tmp
+.tmp_*.png
+
+# Secrets and local config
+.env
+.env.*
+*.secret
+*.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
