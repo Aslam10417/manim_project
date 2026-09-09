@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:E:/manimations/media/videos/main/1080p60/partial_movie_files/Tute1/3977891868_3883887746_3772106287.mp4'
+file 'file:E:/manimations/media/videos/main/1080p60/partial_movie_files/Tute1/2852726489_3185192722_2379127560.mp4'
+file 'file:E:/manimations/media/videos/main/1080p60/partial_movie_files/Tute1/2852726489_1754310298_4132666999.mp4'
+file 'file:E:/manimations/media/videos/main/1080p60/partial_movie_files/Tute1/2852726489_1688735749_3795961980.mp4'
+file 'file:E:/manimations/media/videos/main/1080p60/partial_movie_files/Tute1/2852726489_1754310298_4156747287.mp4'
